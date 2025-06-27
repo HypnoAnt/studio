@@ -27,11 +27,11 @@ const formSchema = z.object({
   text: z.string().min(1, { message: "Please enter some text to analyze." }),
 });
 
-const SlangTerm = ({ slang, text }: { slang: IdentifySlangOutput[0]; text: string }) => (
+const SlangTerm = ({ slang }: { slang: IdentifySlangOutput[0] }) => (
   <Popover>
     <PopoverTrigger asChild>
       <span className="underline decoration-accent decoration-2 underline-offset-2 cursor-pointer font-semibold text-primary">
-        {text.substring(slang.startIndex, slang.endIndex)}
+        {slang.term}
       </span>
     </PopoverTrigger>
     <PopoverContent className="w-80 shadow-xl">
@@ -56,31 +56,33 @@ const SlangTerm = ({ slang, text }: { slang: IdentifySlangOutput[0]; text: strin
 );
 
 const renderAnalyzedText = (text: string, analysis: IdentifySlangOutput) => {
-  if (analysis.length === 0) {
+  if (!analysis || analysis.length === 0) {
     return <p className="whitespace-pre-wrap leading-relaxed">{text}</p>;
   }
 
-  const sortedSlang = [...analysis].sort((a, b) => a.startIndex - b.startIndex);
-  const parts: React.ReactNode[] = [];
-  let lastIndex = 0;
+  const slangMap = new Map(analysis.map((item) => [item.term, item]));
+  
+  const sortedTerms = [...analysis]
+    .map((s) => s.term)
+    .sort((a, b) => b.length - a.length);
 
-  sortedSlang.forEach((slang, index) => {
-    if (slang.startIndex > lastIndex) {
-      parts.push(text.substring(lastIndex, slang.startIndex));
-    }
-    parts.push(<SlangTerm key={index} slang={slang} text={text} />);
-    lastIndex = slang.endIndex;
-  });
-
-  if (lastIndex < text.length) {
-    parts.push(text.substring(lastIndex));
+  if (sortedTerms.length === 0) {
+      return <p className="whitespace-pre-wrap leading-relaxed">{text}</p>;
   }
+
+  const escapedTerms = sortedTerms.map(term => term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+  const regex = new RegExp(`(${escapedTerms.join('|')})`, 'g');
+  const parts = text.split(regex).filter(Boolean);
 
   return (
     <div className="whitespace-pre-wrap leading-relaxed">
-      {parts.map((part, i) => (
-        <React.Fragment key={i}>{part}</React.Fragment>
-      ))}
+      {parts.map((part, i) => {
+        const slangDetail = slangMap.get(part);
+        if (slangDetail) {
+          return <SlangTerm key={i} slang={slangDetail} />;
+        }
+        return <React.Fragment key={i}>{part}</React.Fragment>;
+      })}
     </div>
   );
 };
