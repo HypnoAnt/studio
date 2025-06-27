@@ -17,8 +17,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { analyzeSlang } from "@/app/actions";
+import { analyzeSlang, getSlangSummary } from "@/app/actions";
 import type { IdentifySlangOutput } from "@/ai/flows/identify-slang";
+import type { SummarizeSlangUsageOutput } from "@/ai/flows/summarize-slang-usage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -95,7 +96,8 @@ const renderAnalyzedText = (text: string, analysis: IdentifySlangOutput) => {
 
 
 export function SlangAnalyzer() {
-  const [result, setResult] = React.useState<IdentifySlangOutput | null>(null);
+  const [analysisResult, setAnalysisResult] = React.useState<IdentifySlangOutput | null>(null);
+  const [summaryResult, setSummaryResult] = React.useState<SummarizeSlangUsageOutput | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [inputText, setInputText] = React.useState('');
@@ -108,19 +110,25 @@ export function SlangAnalyzer() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!isDetectionEnabled) {
-      setResult(null);
+      setAnalysisResult(null);
+      setSummaryResult(null);
       setInputText(values.text);
       return;
     };
 
     setIsLoading(true);
     setError(null);
-    setResult(null);
+    setAnalysisResult(null);
+    setSummaryResult(null);
     setInputText(values.text);
 
     try {
-      const slangResult = await analyzeSlang({ text: values.text });
-      setResult(slangResult || []);
+      const [slangResult, summary] = await Promise.all([
+        analyzeSlang({ text: values.text }),
+        getSlangSummary({ text: values.text }),
+      ]);
+      setAnalysisResult(slangResult || []);
+      setSummaryResult(summary);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
@@ -185,18 +193,43 @@ export function SlangAnalyzer() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {summaryResult && !isLoading && (
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle>Overall Analysis</CardTitle>
+            <CardDescription>A high-level summary based on the provided text.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 text-sm">
+            <div className="flex items-start gap-4">
+              <Globe className="h-5 w-5 mt-1 flex-shrink-0 text-muted-foreground" />
+              <div>
+                <h5 className="font-semibold text-foreground">Likely Origin</h5>
+                <p className="text-accent">{summaryResult.summaryCountryOfOrigin}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <Users className="h-5 w-5 mt-1 flex-shrink-0 text-muted-foreground" />
+              <div>
+                <h5 className="font-semibold text-foreground">Likely Age Group</h5>
+                <p className="text-accent">{summaryResult.summaryEstimatedAgeRange}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
-      {result && !isLoading && (
+      {analysisResult && !isLoading && (
         <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Analysis Results</CardTitle>
               <CardDescription>Hover over the highlighted terms to see details.</CardDescription>
             </CardHeader>
             <CardContent>
-              {renderAnalyzedText(inputText, result)}
+              {renderAnalyzedText(inputText, analysisResult)}
             </CardContent>
           
-            {result.length > 0 && (
+            {analysisResult.length > 0 && (
               <>
                 <CardHeader className="pt-0">
                   <CardTitle>Slang Glossary</CardTitle>
@@ -204,7 +237,7 @@ export function SlangAnalyzer() {
                 </CardHeader>
                 <CardContent>
                   <dl className="grid gap-4">
-                    {result.map((slang, index) => (
+                    {analysisResult.map((slang, index) => (
                       <div key={index}>
                         <dt className="font-semibold text-primary">{slang.term}</dt>
                         <dd className="text-muted-foreground">{slang.briefDefinition}</dd>
