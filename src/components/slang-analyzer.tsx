@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2 } from "lucide-react";
+import { Globe, Loader2, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -40,14 +40,20 @@ const SlangTerm = ({ slang }: { slang: IdentifySlangOutput[0] }) => (
           <h4 className="font-medium leading-none text-primary">{slang.term}</h4>
           <p className="text-sm text-muted-foreground">{slang.meaning}</p>
         </div>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <h5 className="font-semibold text-foreground">Country of Origin</h5>
-            <p className="text-muted-foreground">{slang.countryOfOrigin}</p>
+        <div className="grid gap-4 text-sm">
+          <div className="flex items-start gap-3">
+            <Globe className="h-4 w-4 mt-1 flex-shrink-0 text-muted-foreground" />
+            <div>
+              <h5 className="font-semibold text-foreground">Country of Origin</h5>
+              <p className="font-semibold text-accent">{slang.countryOfOrigin}</p>
+            </div>
           </div>
-          <div>
-            <h5 className="font-semibold text-foreground">Age Range</h5>
-            <p className="text-muted-foreground">{slang.estimatedAgeRange}</p>
+          <div className="flex items-start gap-3">
+            <Users className="h-4 w-4 mt-1 flex-shrink-0 text-muted-foreground" />
+            <div>
+              <h5 className="font-semibold text-foreground">Age Range</h5>
+              <p className="font-semibold text-accent">{slang.estimatedAgeRange}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -101,7 +107,11 @@ export function SlangAnalyzer() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!isDetectionEnabled) return;
+    if (!isDetectionEnabled) {
+      setResult(null);
+      setInputText(values.text);
+      return;
+    };
 
     setIsLoading(true);
     setError(null);
@@ -154,7 +164,7 @@ export function SlangAnalyzer() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isLoading || !isDetectionEnabled} className="w-full md:w-auto">
+              <Button type="submit" className="w-full md:w-auto">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
