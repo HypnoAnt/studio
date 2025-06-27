@@ -42,7 +42,7 @@ const SlangTerm = ({ slang, text }: { slang: IdentifySlangOutput[0]; text: strin
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <h5 className="font-semibold text-foreground">Origin</h5>
+            <h5 className="font-semibold text-foreground">Country of Origin</h5>
             <p className="text-muted-foreground">{slang.countryOfOrigin}</p>
           </div>
           <div>
@@ -153,54 +153,55 @@ export function SlangAnalyzer() {
                 )}
               />
               <Button type="submit" disabled={isLoading || !isDetectionEnabled} className="w-full md:w-auto">
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLoading ? 'Analyzing...' : 'Identify Slang'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  "Analyze Text"
+                )}
               </Button>
             </form>
           </Form>
         </CardContent>
       </Card>
 
-      {isLoading && (
-        <div className="flex justify-center items-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      )}
-
       {error && (
         <Alert variant="destructive">
-          <AlertTitle>Analysis Failed</AlertTitle>
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
-      {result && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Results</CardTitle>
-            {result.length > 0 ? (
-              <CardDescription>We found {result.length} slang term(s). Hover over the highlighted words for details.</CardDescription>
-            ) : (
-              <CardDescription>No slang terms were found in your text.</CardDescription>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className="p-6 border rounded-lg bg-background/50 text-lg">
+      
+      {result && !isLoading && (
+        <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Analysis Results</CardTitle>
+              <CardDescription>Hover over the highlighted terms to see details.</CardDescription>
+            </CardHeader>
+            <CardContent>
               {renderAnalyzedText(inputText, result)}
-            </div>
+            </CardContent>
+          
             {result.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-2">Slang Glossary</h3>
-                <ul className="space-y-2">
-                  {result.map((slang, index) => (
-                    <li key={index}>
-                      <span className="font-bold text-primary">{slang.term}:</span> {slang.briefDefinition}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <>
+                <CardHeader className="pt-0">
+                  <CardTitle>Slang Glossary</CardTitle>
+                  <CardDescription>A quick reference for the detected slang.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <dl className="grid gap-4">
+                    {result.map((slang, index) => (
+                      <div key={index}>
+                        <dt className="font-semibold text-primary">{slang.term}</dt>
+                        <dd className="text-muted-foreground">{slang.briefDefinition}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </CardContent>
+              </>
             )}
-          </CardContent>
         </Card>
       )}
     </div>

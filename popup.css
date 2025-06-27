@@ -1,0 +1,12 @@
+body {
+    font-family: sans-serif;
+    padding: 10px;
+    min-width: 200px;
+}
+
+#slangInfo {
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    white-space: pre-wrap;
+}
