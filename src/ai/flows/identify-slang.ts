@@ -23,6 +23,7 @@ const IdentifySlangOutputSchema = z.array(
     startIndex: z.number().describe('The starting index of the slang term in the text.'),
     endIndex: z.number().describe('The ending index of the slang term in the text.'),
     meaning: z.string().describe('The meaning of the slang term.'),
+    briefDefinition: z.string().describe('A very brief (one sentence) definition of the slang term.'),
     countryOfOrigin: z.string().describe('The country of origin of the slang term.'),
     estimatedAgeRange: z.string().describe('The estimated age range of people who use the slang term.'),
   })
@@ -48,6 +49,7 @@ const identifySlangPrompt = ai.definePrompt({
   - startIndex: The starting index of the slang term in the text.
   - endIndex: The ending index of the slang term in the text.
   - meaning: The meaning of the slang term.
+  - briefDefinition: A very brief (one sentence) definition of the slang term.
   - countryOfOrigin: The country of origin of the slang term.
   - estimatedAgeRange: The estimated age range of people who use the slang term.
 

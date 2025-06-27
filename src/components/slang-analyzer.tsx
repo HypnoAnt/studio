@@ -188,6 +188,18 @@ export function SlangAnalyzer() {
             <div className="p-6 border rounded-lg bg-background/50 text-lg">
               {renderAnalyzedText(inputText, result)}
             </div>
+            {result.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-2">Slang Glossary</h3>
+                <ul className="space-y-2">
+                  {result.map((slang, index) => (
+                    <li key={index}>
+                      <span className="font-bold text-primary">{slang.term}:</span> {slang.briefDefinition}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
