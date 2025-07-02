@@ -1,5 +1,3 @@
-# Firebase Studio
+# Test app for Google Student AI Hackathon 
 
-This is a NextJS starter in Firebase Studio.
-
-To get started, take a look at src/app/page.tsx.
+Completely written by Gemini in Firebase Studio (I have no idea what's going on). 
